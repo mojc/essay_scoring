@@ -8,6 +8,10 @@ import keras
 import tensorflow as tf
 import numpy as np
 import pandas as pd
+import nltk
+
+print(tf.config.list_physical_devices())
+# tf.config.set_visible_devices([tf.config.list_physical_devices('GPU')[0]])
 
 # data = keras.utils.text_dataset_from_directory('learning-agency-lab-automated-essay-scoring-2/')
 data = pd.read_csv("learning-agency-lab-automated-essay-scoring-2/train.csv")
@@ -29,6 +33,12 @@ testing_labels = labels[training_size:]
 tokenizer = Tokenizer(num_words=num_words, oov_token='<oov>')
 
 tokenizer.fit_on_texts(training_sentences)
+print('tokenizer.word_index', len(tokenizer.word_index))
+nltk.download('stopwords')
+stop_words = set(nltk.corpus.stopwords.words('english'))
+tokenizer.word_index = {word: cnt for word, cnt in tokenizer.word_index.items() if word not in stop_words}
+print('tokenizer.word_index', len(tokenizer.word_index))
+
 # sequences = tokenizer.texts_to_sequences(essays)
 max_length = max([len(es) for es in essays])
 
@@ -43,18 +53,25 @@ testing_labels = np.array(testing_labels)
 
 model = tf.keras.Sequential([
     tf.keras.layers.Embedding(num_words, 6),
-    layers.GlobalAveragePooling1D(),
-    layers.Dense(64),
+    # layers.GlobalAveragePooling1D(),
+    tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(16)),
     layers.Dense(1, activation='relu')]
 )
 model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
 model.summary()
-callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5)
-history = model.fit(training_padded, training_labels, epochs=50, validation_data=(testing_padded, testing_labels), verbose=2, callbacks=callback)
+callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
+
+with tf.device('/device:GPU:0'):
+    history = model.fit(training_padded, training_labels, epochs=50, validation_data=(testing_padded, testing_labels), verbose=2, callbacks=callback)
 
 preds = np.round(model.predict(testing_padded))
 print(np.mean(abs(preds - testing_labels)))
 print(np.mean((np.round(preds, 0) - testing_labels)**2))
 
+# embedding with averagepooling
 # 1.0258
 # 1.7741
+
+# embedding with bidirectional LSTM and removed stop words
+# 1.0007
+# 1.7187
