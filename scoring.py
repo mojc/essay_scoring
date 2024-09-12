@@ -12,6 +12,7 @@ import nltk
 
 print(tf.config.list_physical_devices())
 # tf.config.set_visible_devices([tf.config.list_physical_devices('GPU')[0]])
+# tf.debugging.set_log_device_placement(True)
 
 # data = keras.utils.text_dataset_from_directory('learning-agency-lab-automated-essay-scoring-2/')
 data = pd.read_csv("learning-agency-lab-automated-essay-scoring-2/train.csv")
