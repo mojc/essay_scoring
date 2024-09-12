@@ -61,8 +61,8 @@ model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
 model.summary()
 callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
-with tf.device('/device:GPU:0'):
-    history = model.fit(training_padded, training_labels, epochs=50, validation_data=(testing_padded, testing_labels), verbose=2, callbacks=callback)
+# with tf.device('/device:GPU:0'): # looking at the activity monitor it does not seem to make a difference
+history = model.fit(training_padded, training_labels, epochs=50, validation_data=(testing_padded, testing_labels), verbose=2, callbacks=callback)
 
 preds = np.round(model.predict(testing_padded))
 print(np.mean(abs(preds - testing_labels)))
