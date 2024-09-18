@@ -18,16 +18,16 @@ X_train, X_val, y_train, y_val = train_test_split(data['full_text'], data['score
 print(X_train.shape, X_val.shape, y_train.shape, y_val.shape )
 
 text_input = tf.keras.layers.Input(shape=(), dtype=tf.string)
-preprocessor = keras_nlp.models.BertPreprocessor.from_preset("bert_base_en", trainable=True)
+preprocessor = keras_nlp.models.BertPreprocessor.from_preset("bert_small_en_uncased", trainable=True)
 encoder_inputs = preprocessor(text_input)
 
-encoder = keras_nlp.models.BertBackbone.from_preset("bert_base_en", load_weights=True, trainable=False)
+encoder = keras_nlp.models.BertBackbone.from_preset("bert_small_en_uncased", load_weights=True)
 outputs = encoder(encoder_inputs)
 pooled_output = outputs["pooled_output"]      # [batch_size, 768].
 sequence_output = outputs["sequence_output"]  # [batch_size, seq_length, 768].
 
 l = tf.keras.layers.Dense(16, activation='relu', name='h1')(pooled_output)
-l = tf.keras.layers.Dense(64, activation='relu',name='h2')(l)
+# l = tf.keras.layers.Dense(64, activation='relu',name='h2')(l)
 l = tf.keras.layers.Dense(32, activation='relu', name='h3')(l)
 l = tf.keras.layers.Dense(1,activation='relu',name='output')(l)
 
@@ -39,5 +39,9 @@ model.summary()
 # Non-trainable params: 0 (0.00 B)?
 
 history = model.fit(X_train, y_train, epochs=5, batch_size=32, validation_data=(X_val, y_val))
-
 model.evaluate(X_val, y_val)
+# accuracy: 0.0777 - loss: 1.1673
+
+preds = np.round(model.predict(X_val))
+print(np.mean(abs(preds - y_val)))
+print(np.mean((np.round(preds, 0) - y_val)**2))
