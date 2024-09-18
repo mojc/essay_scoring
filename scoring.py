@@ -64,6 +64,8 @@ callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore
 
 # with tf.device('/device:GPU:0'): # looking at the activity monitor it does not seem to make a difference
 history = model.fit(training_padded, training_labels, epochs=50, validation_data=(testing_padded, testing_labels), verbose=2, callbacks=callback)
+model.evaluate(testing_padded, testing_labels)
+# accuracy: 0.0762 - loss: 0.4253
 
 preds = np.round(model.predict(testing_padded))
 print(np.mean(abs(preds - testing_labels)))
