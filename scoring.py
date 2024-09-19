@@ -78,3 +78,7 @@ print(np.mean((np.round(preds, 0) - testing_labels)**2))
 # embedding with bidirectional LSTM and removed stop words
 # 1.0007
 # 1.7187
+
+# bert_small_en_uncased -  predicting one value though
+# 0.8415
+# 1.1086
