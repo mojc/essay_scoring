@@ -48,17 +48,17 @@ training_padded = pad_sequences(training_sequences, maxlen=max_length, padding=p
 testing_sequences = tokenizer.texts_to_sequences(testing_sentences)
 testing_padded = pad_sequences(testing_sequences, maxlen=max_length, padding=padding_type, truncating=trunc_type)
 training_padded = np.array(training_padded)
-training_labels = np.array(training_labels)
+training_labels = np.array(training_labels) - 1
 testing_padded = np.array(testing_padded)
-testing_labels = np.array(testing_labels)
+testing_labels = np.array(testing_labels) - 1
 
 model = tf.keras.Sequential([
     tf.keras.layers.Embedding(num_words, 6),
     # layers.GlobalAveragePooling1D(),
     tf.keras.layers.Bidirectional(tf.keras.layers.LSTM(16)),
-    layers.Dense(1, activation='relu')]
+    layers.Dense(6, activation='softmax')]
 )
-model.compile(loss='MSE', optimizer='adam', metrics=['accuracy'])
+model.compile(loss='sparse_categorical_crossentropy', optimizer='adam', metrics=['accuracy'])
 model.summary()
 callback = keras.callbacks.EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True)
 
@@ -67,7 +67,8 @@ history = model.fit(training_padded, training_labels, epochs=50, validation_data
 model.evaluate(testing_padded, testing_labels)
 # accuracy: 0.0762 - loss: 0.4253
 
-preds = np.round(model.predict(testing_padded))
+# preds = np.round(model.predict(testing_padded))
+preds = np.argmax(model.predict(testing_padded), axis=1)
 print(np.mean(abs(preds - testing_labels)))
 print(np.mean((np.round(preds, 0) - testing_labels)**2))
 
@@ -76,8 +77,16 @@ print(np.mean((np.round(preds, 0) - testing_labels)**2))
 # 1.7741
 
 # embedding with bidirectional LSTM and removed stop words
+# able to predict bigger range
 # 1.0007
 # 1.7187
+# classification setup (predicting between 0 and 3 only though :/)
+# accuracy: 0.5640 - loss: 1.0697
+# 0.4780
+# 0.5530
+# second try
+# 0.7314
+# 1.0175
 
 # bert_small_en_uncased -  predicting one value though
 # 0.8415
